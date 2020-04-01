@@ -32,6 +32,9 @@ public class AstarManager : Singleton<AstarManager>
 
     public List<BaseNode> FindPath(int start_x, int start_y, int end_x, int end_y)
     {
+        open_list.Clear();
+        close_list.Clear();
+
 
         BaseNode start = mapLists[start_x][start_y];
         BaseNode end = mapLists[end_x][end_y];

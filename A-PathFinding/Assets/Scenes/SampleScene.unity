@@ -281,6 +281,7 @@ MonoBehaviour:
   cube: {fileID: 186102191879824712, guid: f2838091ac6e1d64490d4547958d5a98, type: 3}
   startx: 0
   starty: 0
+  defaultmat: {fileID: 2100000, guid: 818e4f7a0691cc645bf1a38d2fb1c21c, type: 2}
   startMat: {fileID: 2100000, guid: db021ab56db7478449b45780fbede1c6, type: 2}
   endMat: {fileID: 2100000, guid: 406e30cb0aac7e440a018d0c568b923a, type: 2}
   unwalkMat: {fileID: 2100000, guid: b701789e4f8235c45b4c85540645a5a4, type: 2}
