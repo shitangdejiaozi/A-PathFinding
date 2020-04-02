@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum FindType
+{
+    NoTrack,
+    Track
+}
 public class AstarManager : Singleton<AstarManager>
 {
     List<BaseNode> open_list = new List<BaseNode>();
@@ -10,9 +15,9 @@ public class AstarManager : Singleton<AstarManager>
     //地图的宽高
     private int width;
     private int height;
-
+    public FindType findType;
     public List<List<BaseNode>> mapLists = new List<List<BaseNode>>();
-
+    private BaseNode StartNode;
     public void InitMap(int w, int h)
     {
         for(int i = 0; i < w; i++)
@@ -35,13 +40,14 @@ public class AstarManager : Singleton<AstarManager>
         open_list.Clear();
         close_list.Clear();
 
-
+        Debug.LogError("find type" + findType.ToString());
         BaseNode start = mapLists[start_x][start_y];
+        StartNode = start;
         BaseNode end = mapLists[end_x][end_y];
 
         if(start.nodeType == NodeType.unwalk || end.nodeType == NodeType.unwalk)
         {
-            Debug.LogError("寻路起始点不可达");
+            Debug.LogError("寻路终点不可达");
             return null;
         }
 
@@ -102,20 +108,64 @@ public class AstarManager : Singleton<AstarManager>
             return;
 
         BaseNode nearNode = mapLists[x][y];
-        if (nearNode.nodeType == NodeType.unwalk || close_list.Contains(nearNode) || open_list.Contains(nearNode))
+        if (nearNode.nodeType == NodeType.unwalk || close_list.Contains(nearNode))
             return;
-        nearNode.parentNode = parent;
-        nearNode.g = parent.g + g;
-        nearNode.h = Mathf.Abs(nearNode.x - end.x) + Mathf.Abs(nearNode.y - end.y);
-        nearNode.f = nearNode.g + nearNode.h;
 
-        open_list.Add(nearNode);
+        if(findType == FindType.Track)
+        {
+            //这个节点，已经在openlist中，需要进行重新计算，当前的G是否更优
+            if (open_list.Contains(nearNode))
+            {
+                float newg = parent.g + g;
+                float oldg = nearNode.g;
+                if (newg < oldg)
+                {
+                    nearNode.parentNode = parent;
+                    nearNode.g = newg;
+                    nearNode.f = nearNode.g + nearNode.h;
+                }
+            }
+            else
+            {
+                nearNode.parentNode = parent;
+                nearNode.g = parent.g + g;
+                //加一个扰动，尽量走直线
+                float factor = Mathf.Min(Mathf.Abs(nearNode.x - StartNode.x), Mathf.Abs(nearNode.x - end.x)) + Mathf.Min(Mathf.Abs(nearNode.y - StartNode.y), Mathf.Abs(nearNode.y - end.y));
+                factor *= 0.01f;
+                nearNode.h = Mathf.Abs(nearNode.x - end.x) + Mathf.Abs(nearNode.y - end.y) + factor;
+                
+                nearNode.f = nearNode.g + nearNode.h;
+
+                open_list.Add(nearNode);
+            }
+        }
+        else
+        {
+           
+
+            if (open_list.Contains(nearNode))
+                return;
+            nearNode.parentNode = parent;
+            nearNode.g = parent.g + g;
+            nearNode.h = Mathf.Abs(nearNode.x - end.x) + Mathf.Abs(nearNode.y - end.y);
+            nearNode.f = nearNode.g + nearNode.h;
+
+            open_list.Add(nearNode);
+        }
+        
+        
 
     }
 
     private int Compare(BaseNode a, BaseNode b)
     {
-        return - a.f.CompareTo(b.f);
+        if (a.f > b.f)
+            return 1;
+        else if (a.f == b.f)
+            return -1;
+        else
+            return 0;
+       
     }
 
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AstarDemo : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class AstarDemo : MonoBehaviour
     public Material unwalkMat;
     public Material pathMat;
 
+    public Button trackBtn;
+    public Button notrackBtn;
     private int start_x = 0;
     private int start_y = 0;
     private int end_x = 5;
@@ -26,6 +29,8 @@ public class AstarDemo : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        trackBtn.onClick.AddListener(ClickTrackBtn);
+        notrackBtn.onClick.AddListener(ClicknoTrackBtn);
         AstarManager.Instance.InitMap(width, height);
         CreateMap();
        
@@ -37,7 +42,7 @@ public class AstarDemo : MonoBehaviour
             return;
         foreach (var path in paths)
         {
-            if (path.parentNode == null)
+            if (path.parentNode == null ||  (path.x == end_x && path.y == end_y))
                 continue;
             GameObject cubego = cubeList[path.x][path.y];
             cubego.GetComponent<MeshRenderer>().material = pathMat;
@@ -84,26 +89,45 @@ public class AstarDemo : MonoBehaviour
             if(Physics.Raycast(ray, out info, 1000))
             {
                 string[] strs = info.collider.gameObject.name.Split('_');
-                int x = int.Parse(strs[0]);
-                int y = int.Parse(strs[1]);
+                end_x = int.Parse(strs[0]);
+                end_y = int.Parse(strs[1]);
                 ResetPath();
-                GameObject cubego = cubeList[x][y];
+                GameObject cubego = cubeList[end_x][end_y];
                 cubego.GetComponent<MeshRenderer>().material = endMat;
 
-                paths.Clear();
-                paths = AstarManager.Instance.FindPath(0, 0, x, y);
-                ShowPath(paths);
+                FindPath();
 
             }
         }
     }
 
+    private void FindPath()
+    {
+        paths.Clear();
+        paths = AstarManager.Instance.FindPath(0, 0, end_x, end_y);
+        ShowPath(paths);
+    }
+
     private void ResetPath()
     {
-        for(int i = 0; i< paths.Count; i++)
+        if (paths == null)
+            return;
+        for(int i = 1; i< paths.Count; i++)
         {
             GameObject cubego = cubeList[paths[i].x][paths[i].y];
             cubego.GetComponent<MeshRenderer>().material = defaultmat;
         }
+    }
+
+    private void ClickTrackBtn()
+    {
+        AstarManager.Instance.findType = FindType.Track;
+        FindPath();
+    }
+
+    private void ClicknoTrackBtn()
+    {
+        AstarManager.Instance.findType = FindType.NoTrack;
+        FindPath();
     }
 }
